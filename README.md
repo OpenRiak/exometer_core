@@ -8,10 +8,7 @@ __Version:__ Feb 17 2024 15:18:00
 
 __Authors:__ Ulf Wiger ([`ulf.wiger@feuerlabs.com`](mailto:ulf.wiger@feuerlabs.com)), Magnus Feuer ([`magnus.feuer@feuerlabs.com`](mailto:magnus.feuer@feuerlabs.com)).
 
-[![Build Status](https://github.com/Feuerlabs/exometer_core/actions/workflows/main.yml/badge.svg)](https://github.com/Feuerlabs/exometer_core/actions/workflows/main.yml)
-[![Hex.pm Version][hex version badge]][hex]
-[![Hex.pm License][hex license badge]][hex]
-[![Build Tool][build tool]][hex]
+![Exometer Core OpenRiak Status](https://github.com/OpenRiak/exometer_core/actions/workflows/erlang.yml/badge.svg?branch=openriak-3.2)
 
 The Exometer Core package allows for easy and efficient instrumentation of
 Erlang code, allowing crucial data on system performance to be
