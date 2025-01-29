@@ -17,6 +17,7 @@
     timestamp_to_datetime/1,
     get_opt/2,
     get_opt/3,
+    find_env_vars/1,
     get_env/2,
     tables/0,
     table/0,
@@ -79,6 +80,20 @@ timestamp_to_datetime(TS) when TS >= 0 ->
     MS = TS rem 1000,
     %% return {Datetime, Milliseconds}
     {calendar:now_to_datetime({1258,S,0}), MS}.
+
+find_env_vars(Env) ->
+    lists:flatmap(
+        fun({A,_,_}) ->
+            case application:get_env(A, Env) of
+                {ok, Val} when Val =/= undefined ->
+                    [{A, Val}];
+                _ ->
+                    []
+            end
+        end,
+        application:loaded_applications()
+    ).
+    
 
 get_env(Key, Default) ->
     case get_env1(exometer, Key) of
