@@ -421,7 +421,8 @@ create_ets_tabs() ->
             ets:new(?EXOMETER_REPORTERS, [public, named_table, set,
                                           {keypos, 2}]),
             ets:new(?EXOMETER_SUBS, [public, named_table, ordered_set,
-                                     {keypos, 2}]);
+                                     {keypos, 2}]),
+            exometer_util:init_counters();
         _ ->
             true
     end.

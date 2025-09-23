@@ -210,20 +210,19 @@ update(Name, Value) ->
     end.
 
 update_(Name, Value) when is_list(Name) ->
-    case ets:lookup(Table = exometer_util:table(), Name) of
+    case ets:lookup(?EXOMETER_ENTRIES, Name) of
         [#exometer_entry{status = Status} = E]
           when ?IS_ENABLED(Status) ->
             case E of
-                #exometer_entry{module = ?MODULE, type = counter} ->
-                    ets:update_counter(
-                      Table, Name, {#exometer_entry.value, Value});
+                #exometer_entry{module = ?MODULE, type = counter,
+                                ref = {counter_slot, SlotIndex}} ->
+                    exometer_util:counter_update(SlotIndex, Value);
                 #exometer_entry{module = ?MODULE,
                                 type = fast_counter, ref = {M, F}} ->
                     fast_incr(Value, M, F);
-                #exometer_entry{module = ?MODULE, type = gauge} ->
-                    ets:update_element(
-                      ?EXOMETER_ENTRIES,
-                      Name, [{#exometer_entry.value, Value}]);
+                #exometer_entry{module = ?MODULE, type = gauge,
+                                ref = {atomic_slot, SlotIndex}} ->
+                    exometer_util:atomic_put(SlotIndex, Value);
                 #exometer_entry{behaviour = probe,
                                 type = T, ref = Pid} ->
                     exometer_probe:update(Name, Value, T, Pid);
@@ -458,14 +457,15 @@ reset(Name) ->
     end.
 
 reset_(Name)  when is_list(Name) ->
-    case ets:lookup(exometer_util:table(), Name) of
+    case ets:lookup(?EXOMETER_ENTRIES, Name) of
         [#exometer_entry{status = Status} = E] when ?IS_ENABLED(Status) ->
             case E of
-                #exometer_entry{module = ?MODULE, type = counter} ->
+                #exometer_entry{module = ?MODULE, type = counter,
+                                ref = {counter_slot, SlotIndex}} ->
+                    exometer_util:counter_put(SlotIndex, 0),
                     TS = exometer_util:timestamp(),
-                    [ets:update_element(T, Name, [{#exometer_entry.value, 0},
-                                                  {#exometer_entry.timestamp, TS}])
-                     || T <- [?EXOMETER_ENTRIES|exometer_util:tables()]],
+                    ets:update_element(?EXOMETER_ENTRIES, Name,
+                                       [{#exometer_entry.timestamp, TS}]),
                     ok;
                 #exometer_entry{module = ?MODULE, type = fast_counter,
                                 ref = {M, F}} ->
@@ -474,11 +474,12 @@ reset_(Name)  when is_list(Name) ->
                     [ets:update_element(T, Name, [{#exometer_entry.timestamp, TS}])
                      || T <- [?EXOMETER_ENTRIES|exometer_util:tables()]],
                     ok;
-                #exometer_entry{module = ?MODULE, type = gauge} ->
+                #exometer_entry{module = ?MODULE, type = gauge,
+                                ref = {atomic_slot, SlotIndex}} ->
+                    exometer_util:atomic_put(SlotIndex, 0),
                     TS = exometer_util:timestamp(),
-                    [ets:update_element(T, Name, [{#exometer_entry.value, 0},
-                                                  {#exometer_entry.timestamp, TS}])
-                     || T <- [?EXOMETER_ENTRIES|exometer_util:tables()]],
+                    ets:update_element(?EXOMETER_ENTRIES, Name,
+                                       [{#exometer_entry.timestamp, TS}]),
                     ok;
                 #exometer_entry{behaviour = probe, type = Type, ref = Ref} ->
                     [exometer_cache:delete(Name, DataPoint) ||
@@ -1081,25 +1082,21 @@ type_arg_first(Opts) ->
 
 %% Retrieve individual data points for the counter maintained by
 %% the exometer record itself.
-get_ctr_datapoint(#exometer_entry{name = Name}, value) ->
-    {value, counter_sum(Name)};
-get_ctr_datapoint(#exometer_entry{name = Name}, value16) ->
-    {value16, counter_sum(Name) rem 16#FFFF};
-get_ctr_datapoint(#exometer_entry{name = Name}, value32) ->
-    {value32, counter_sum(Name) rem 16#FFFFFFFF};
-get_ctr_datapoint(#exometer_entry{name = Name}, value64) ->
-    {value64, counter_sum(Name) rem 16#FFFFFFFFFFFFFFFF};
+get_ctr_datapoint(#exometer_entry{ref = {counter_slot, SlotIndex}}, value) ->
+    {value, exometer_util:counter_get(SlotIndex)};
+get_ctr_datapoint(#exometer_entry{ref = {counter_slot, SlotIndex}}, value16) ->
+    {value16, exometer_util:counter_get(SlotIndex) band 16#FFFF};
+get_ctr_datapoint(#exometer_entry{ref = {counter_slot, SlotIndex}}, value32) ->
+    {value32, exometer_util:counter_get(SlotIndex) band 16#FFFFFFFF};
+get_ctr_datapoint(#exometer_entry{ref = {counter_slot, SlotIndex}}, value64) ->
+    {value64, exometer_util:counter_get(SlotIndex) band 16#FFFFFFFFFFFFFFFF};
 get_ctr_datapoint(#exometer_entry{timestamp = TS}, ms_since_reset) ->
     {ms_since_reset, exometer_util:timestamp() - TS};
 get_ctr_datapoint(#exometer_entry{}, Undefined) ->
     {Undefined, undefined}.
 
-counter_sum(Name) ->
-    lists:sum([ets:lookup_element(T, Name, #exometer_entry.value)
-               || T <- exometer_util:tables()]).
-
-get_gauge_datapoint(#exometer_entry{value = Value}, value) ->
-    {value, Value};
+get_gauge_datapoint(#exometer_entry{ref = {atomic_slot, SlotIndex}}, value) ->
+    {value, exometer_util:atomic_get(SlotIndex)};
 get_gauge_datapoint(#exometer_entry{timestamp = TS}, ms_since_reset) ->
     {ms_since_reset, exometer_util:timestamp() - TS};
 get_gauge_datapoint(#exometer_entry{}, Undefined) ->
@@ -1124,12 +1121,38 @@ get_fctr_datapoint(#exometer_entry{ }, Undefined) ->
 
 
 create_entry(#exometer_entry{module = exometer,
-                             type = Type} = E) when Type == counter;
-                                                    Type == gauge ->
-    E1 = E#exometer_entry{value = 0, timestamp = exometer_util:timestamp()},
-    insert_aliases(E1),
-    [ets:insert(T, E1) || T <- [?EXOMETER_ENTRIES|exometer_util:tables()]],
-    ok;
+                             type = counter} = E) ->
+    case exometer_util:allocate_counter_slot(E#exometer_entry.name) of
+        {ok, SlotIndex} ->
+            exometer_util:counter_put(SlotIndex, 0),
+            E1 = E#exometer_entry{
+                ref = {counter_slot, SlotIndex},
+                value = undefined,  % Value stored in counters array
+                timestamp = exometer_util:timestamp()
+            },
+            insert_aliases(E1),
+            [ets:insert(T, E1) || T <- [?EXOMETER_ENTRIES|exometer_util:tables()]],
+            ok;
+        {error, Reason} ->
+            {error, Reason}
+    end;
+
+create_entry(#exometer_entry{module = exometer,
+                             type = gauge} = E) ->
+    case exometer_util:allocate_atomic_slot(E#exometer_entry.name) of
+        {ok, SlotIndex} ->
+            exometer_util:atomic_put(SlotIndex, 0),
+            E1 = E#exometer_entry{
+                ref = {atomic_slot, SlotIndex},
+                value = undefined,  % Value stored in atomics array
+                timestamp = exometer_util:timestamp()
+            },
+            insert_aliases(E1),
+            [ets:insert(T, E1) || T <- [?EXOMETER_ENTRIES|exometer_util:tables()]],
+            ok;
+        {error, Reason} ->
+            {error, Reason}
+    end;
 
 create_entry(#exometer_entry{module = exometer,
                              status = Status,

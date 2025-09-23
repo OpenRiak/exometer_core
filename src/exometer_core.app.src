@@ -6,7 +6,12 @@
               {included_applications,[]},
               {mod,{exometer_core_app,[]}},
               {start_phases,[{start_reporters,[]},{preset_defaults,[]}]},
-              {env,[]},
+              {env, [
+                  %% Maximum number of counter slots (requires OTP 21.2+)
+                  {max_counters, 100000},
+                  %% Maximum number of atomic slots (requires OTP 21.2+)
+                  {max_atomics, 50000}
+              ]},
               {maintainers,["Magnus Feuer","Ulf Wiger","Tino Breddin"]},
               {licenses,["MPL-2.0"]},
               {links,[{"Github",

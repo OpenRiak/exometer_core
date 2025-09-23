@@ -245,11 +245,11 @@ test_eval_script_match_case(_Config) ->
 test_wrapping_counter(_Config) ->
     C = [?MODULE, ctr, ?LINE],
     ok = exometer:new(C, counter, []),
-    Max16 = 65534,
-    Max32 = 4294967294,
-    Max64 = 18446744073709551614,
-    Max64p1 = 18446744073709551615,
-    Max64p21 = 18446744073709551635,
+    Max16 = 65535,
+    Max32 = 4294967295,
+    Max64 = 18446744073709551615,
+    Max64p1 = 18446744073709551616,
+    Max64p21 = 18446744073709551636,
     ok = exometer:update(C, Max64),
     {ok, [{value, Max64}, {value16, Max16}, {value32, Max32}, {value64, Max64}]} =
       exometer:get_value(C, [value, value16, value32, value64]),
