@@ -41,7 +41,17 @@
     seed0/0,
     seed/1,
     uniform/0,
-    uniform/1
+    uniform/1,
+    init_counters/0,
+    allocate_counter_slot/1,
+    allocate_atomic_slot/1,
+    get_counters_ref/0,
+    get_atomics_ref/0,
+    counter_update/2,
+    counter_put/2,
+    counter_get/1,
+    atomic_put/2,
+    atomic_get/1
    ]).
 
 -export_type([timestamp/0]).
@@ -377,7 +387,6 @@ ensure_all_started(App) ->
     %% in earlier R16B versions of OTP
     ensure_all_started(App, []).
 
--ifdef(rand_module).
 seed() ->
     {0, 0, 0}.
 
@@ -394,24 +403,6 @@ uniform() ->
 uniform(N) ->
     rand:uniform(N).
 
--else.
-seed() ->
-    random:seed().
-
-seed0() ->
-    random:seed0().
-
-seed({A, B, C}) ->
-    random:seed({A, B, C}).
-
-uniform() ->
-    random:uniform().
-
-uniform(N) ->
-    random:uniform(N).
-
--endif.
-
 %% This implementation is originally from Basho's
 %% Webmachine. Reimplementation of ensure_all_started. NOTE this does
 %% not behave the same as the native version in all cases, but as a
@@ -427,6 +418,175 @@ ensure_all_started(App, Apps0) ->
         {error,{not_started,BaseApp}} ->
             {ok, Apps} = ensure_all_started(BaseApp, Apps0),
             ensure_all_started(App, [BaseApp|Apps])
+    end.
+
+%% @doc Initialize counters and atomics.
+%% This creates the backing arrays and sets up slot management.
+-spec init_counters() -> ok.
+init_counters() ->
+    try
+        MaxCounters = get_env(max_counters, 100000),
+        MaxAtomics = get_env(max_atomics, 50000),
+
+        CountersRef = atomics:new(MaxAtomics, [{signed, false}]),
+        AtomicsRef = atomics:new(MaxAtomics, [{signed, true}]),
+
+        CounterState = #{
+            counters_ref => CountersRef,
+            max_slots => MaxCounters,
+            name_to_slot => #{},
+            next_slot => 1
+        },
+
+        AtomicState = #{
+            atomics_ref => AtomicsRef,
+            max_slots => MaxAtomics,
+            name_to_slot => #{},
+            next_slot => 1
+        },
+
+        persistent_term:put(exometer_counters_state, CounterState),
+        persistent_term:put(exometer_atomics_state, AtomicState),
+        ok
+    catch
+        Error:Reason ->
+            error({init_counters_failed, Error, Reason})
+    end.
+
+%% @doc Allocate a slot in the counters array for a named metric.
+-spec allocate_counter_slot(term()) -> {ok, pos_integer()} | {error, term()}.
+allocate_counter_slot(Name) ->
+    try
+        State = persistent_term:get(exometer_counters_state),
+        #{name_to_slot := NameToSlot, next_slot := NextSlot, max_slots := MaxSlots} = State,
+
+        case maps:get(Name, NameToSlot, undefined) of
+            undefined when NextSlot =< MaxSlots ->
+                NewNameToSlot = maps:put(Name, NextSlot, NameToSlot),
+                NewState = State#{
+                    name_to_slot := NewNameToSlot,
+                    next_slot := NextSlot + 1
+                },
+                persistent_term:put(exometer_counters_state, NewState),
+                {ok, NextSlot};
+            undefined ->
+                {error, max_counters_exceeded};
+            ExistingSlot ->
+                {ok, ExistingSlot}
+        end
+    catch
+        error:badarg ->
+            {error, counters_not_initialized};
+        Error:Reason ->
+            {error, {allocation_failed, Error, Reason}}
+    end.
+
+%% @doc Allocate a slot in the atomics array for a named metric.
+-spec allocate_atomic_slot(term()) -> {ok, pos_integer()} | {error, term()}.
+allocate_atomic_slot(Name) ->
+    try
+        State = persistent_term:get(exometer_atomics_state),
+        #{name_to_slot := NameToSlot, next_slot := NextSlot, max_slots := MaxSlots} = State,
+
+        case maps:get(Name, NameToSlot, undefined) of
+            undefined when NextSlot =< MaxSlots ->
+                NewNameToSlot = maps:put(Name, NextSlot, NameToSlot),
+                NewState = State#{
+                    name_to_slot := NewNameToSlot,
+                    next_slot := NextSlot + 1
+                },
+                persistent_term:put(exometer_atomics_state, NewState),
+                {ok, NextSlot};
+            undefined ->
+                {error, max_atomics_exceeded};
+            ExistingSlot ->
+                {ok, ExistingSlot}
+        end
+    catch
+        error:badarg ->
+            {error, atomics_not_initialized};
+        Error:Reason ->
+            {error, {allocation_failed, Error, Reason}}
+    end.
+
+%% @doc Get the counters reference.
+-spec get_counters_ref() -> atomics:atomics_ref() | undefined.
+get_counters_ref() ->
+    try
+        State = persistent_term:get(exometer_counters_state),
+        maps:get(counters_ref, State)
+    catch
+        error:badarg ->
+            undefined
+    end.
+
+%% @doc Get the atomics reference.
+-spec get_atomics_ref() -> atomics:atomics_ref() | undefined.
+get_atomics_ref() ->
+    try
+        State = persistent_term:get(exometer_atomics_state),
+        maps:get(atomics_ref, State)
+    catch
+        error:badarg ->
+            undefined
+    end.
+
+%% @doc Update a counter by adding Value to the slot.
+-spec counter_update(pos_integer(), non_neg_integer()) -> ok | {error, term()}.
+counter_update(SlotIndex, Value) ->
+    try
+        CountersRef = get_counters_ref(),
+        Before = atomics:get(CountersRef, SlotIndex),
+        After = atomics:add_get(CountersRef, SlotIndex, Value),
+        io:format(user, "~nBefore:~p, After:~p ~n", [Before, After]),
+        ok
+    catch
+        Error:Reason ->
+            {error, {counter_update_failed, Error, Reason}}
+    end.
+
+%% @doc Update a counter by adding Value to the slot.
+-spec counter_put(pos_integer(), non_neg_integer()) -> ok | {error, term()}.
+counter_put(SlotIndex, Value) ->
+    try
+        CountersRef = get_counters_ref(),
+        atomics:put(CountersRef, SlotIndex, Value),
+        ok
+    catch
+        Error:Reason ->
+            {error, {counter_update_failed, Error, Reason}}
+    end.
+
+%% @doc Get the current value of a counter slot.
+-spec counter_get(pos_integer()) -> non_neg_integer() | {error, term()}.
+counter_get(SlotIndex) ->
+    try
+        CountersRef = get_counters_ref(),
+        atomics:get(CountersRef, SlotIndex)
+    catch
+        Error:Reason ->
+            {error, {counter_get_failed, Error, Reason}}
+    end.
+
+-spec atomic_put(pos_integer(), integer()) -> ok | {error, term()}.
+atomic_put(SlotIndex, Value) ->
+    try
+        AtomicsRef = get_atomics_ref(),
+        atomics:put(AtomicsRef, SlotIndex, Value),
+        ok
+    catch
+        Error:Reason ->
+            {error, {atomic_put_failed, Error, Reason}}
+    end.
+
+-spec atomic_get(pos_integer()) -> integer() | {error, term()}.
+atomic_get(SlotIndex) ->
+    try
+        AtomicsRef = get_atomics_ref(),
+        atomics:get(AtomicsRef, SlotIndex)
+    catch
+        Error:Reason ->
+            {error, {atomic_get_failed, Error, Reason}}
     end.
 
 
