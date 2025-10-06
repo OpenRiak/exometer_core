@@ -538,7 +538,6 @@ counter_update(SlotIndex, Value) ->
         CountersRef = get_counters_ref(),
         Before = atomics:get(CountersRef, SlotIndex),
         After = atomics:add_get(CountersRef, SlotIndex, Value),
-        io:format(user, "~nBefore:~p, After:~p ~n", [Before, After]),
         ok
     catch
         Error:Reason ->
