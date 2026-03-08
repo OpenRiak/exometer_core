@@ -6,7 +6,7 @@ Copyright (c) 2014 Basho Technologies, Inc.  All Rights Reserved.
 
 __Version:__ Feb 17 2024 15:18:00
 
-__Authors:__ Ulf Wiger ([`ulf.wiger@OpenRiak.com`](mailto:ulf.wiger@OpenRiak.com)), Magnus Feuer ([`magnus.feuer@OpenRiak.com`](mailto:magnus.feuer@OpenRiak.com)).
+__Authors:__ Ulf Wiger ([`ulf.wiger@feuerlabs.com`](mailto:ulf.wiger@feuerlabs.com)), Magnus Feuer ([`magnus.feuer@feuerlabs.com`](mailto:magnus.feuer@feuerlabs.com)).
 
 ![Exometer Core OpenRiak Status](https://github.com/OpenRiak/exometer_core/actions/workflows/erlang.yml/badge.svg?branch=openriak-3.4)
 
