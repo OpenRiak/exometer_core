@@ -6,7 +6,7 @@ Copyright (c) 2014 Basho Technologies, Inc.  All Rights Reserved.
 
 __Version:__ Feb 17 2024 15:18:00
 
-__Authors:__ Ulf Wiger ([`ulf.wiger@feuerlabs.com`](mailto:ulf.wiger@feuerlabs.com)), Magnus Feuer ([`magnus.feuer@feuerlabs.com`](mailto:magnus.feuer@feuerlabs.com)).
+__Authors:__ Ulf Wiger ([`ulf.wiger@OpenRiak.com`](mailto:ulf.wiger@OpenRiak.com)), Magnus Feuer ([`magnus.feuer@OpenRiak.com`](mailto:magnus.feuer@OpenRiak.com)).
 
 ![Exometer Core OpenRiak Status](https://github.com/OpenRiak/exometer_core/actions/workflows/erlang.yml/badge.svg?branch=openriak-3.4)
 
@@ -23,47 +23,47 @@ This document gives a high level overview of the Exometer system. For
 details, please see the documentation for individual modules, starting
 with `exometer`.
 
-Note the section on [Dependency Management](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Dependency_Management) for how to deal with
+Note the section on [Dependency Management](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Dependency_Management) for how to deal with
 optional packages, both users and developers.
 
 
 ### <a name="Table_of_Content">Table of Content</a> ###
 
-1. [Concept and definitions](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Concept_and_definitions)
-    1. [Metric](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Metric)
-    2. [Data Point](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Data_Point)
-    3. [Metric Type](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Metric_Type)
-    4. [Entry Callback](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Entry_Callback)
-    5. [Probe](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Probe)
-    6. [Caching](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Caching)
-    7. [Subscriptions and Reporters](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Subscriptions_and_Reporters)
-2. [Built-in entries and probes](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Built-in_entries_and_probes)
-    1. [counter (exometer native)](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#counter_(exometer_native))
-    2. [fast_counter (exometer native)](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#fast_counter_(exometer_native))
-    3. [gauge (exometer native)](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#gauge_(exometer_native))
-    4. [exometer_histogram (probe)](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#exometer_histogram_(probe))
-    5. [exometer_uniform (probe)](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#exometer_uniform_(probe))
-    6. [exometer_spiral (probe)](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#exometer_spiral_(probe))
-    7. [exometer_function [entry]](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#exometer_function_[entry])
-3. [Built in Reporters](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Built_in_Reporters)
-    1. [exometer_report_tty](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#exometer_report_tty)
-4. [Instrumenting Erlang code](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Instrumenting_Erlang_code)
-    1. [Exometer Core Start](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Exometer_Core_Start)
-    2. [Creating metrics](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Creating_metrics)
-    3. [Deleting metrics](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Deleting_metrics)
-    4. [Setting metric values](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Setting_metric_values)
-    5. [Retrieving metric values](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Retrieving_metric_values)
-    6. [Setting up subscriptions](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Setting_up_subscriptions)
-    7. [Set metric options](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Set_metric_options)
-5. [Configuring Exometer Core](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Configuring_Exometer_Core)
-    1. [Configuring type - entry maps](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Configuring_type_-_entry_maps)
-    2. [Configuring statically defined entries](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Configuring_statically_defined_entries)
-    3. [Configuring static subscriptions](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Configuring_static_subscriptions)
-    4. [Configuring reporter plugins](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Configuring_reporter_plugins)
-6. [Creating custom exometer entries](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Creating_custom_exometer_entries)
-7. [Creating custom probes](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Creating_custom_probes)
-8. [Creating custom reporter plugins](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Creating_custom_reporter_plugins)
-9. [Dependency management](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Dependency_management)
+1. [Concept and definitions](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Concept_and_definitions)
+    1. [Metric](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Metric)
+    2. [Data Point](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Data_Point)
+    3. [Metric Type](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Metric_Type)
+    4. [Entry Callback](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Entry_Callback)
+    5. [Probe](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Probe)
+    6. [Caching](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Caching)
+    7. [Subscriptions and Reporters](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Subscriptions_and_Reporters)
+2. [Built-in entries and probes](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Built-in_entries_and_probes)
+    1. [counter (exometer native)](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#counter_(exometer_native))
+    2. [fast_counter (exometer native)](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#fast_counter_(exometer_native))
+    3. [gauge (exometer native)](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#gauge_(exometer_native))
+    4. [exometer_histogram (probe)](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#exometer_histogram_(probe))
+    5. [exometer_uniform (probe)](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#exometer_uniform_(probe))
+    6. [exometer_spiral (probe)](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#exometer_spiral_(probe))
+    7. [exometer_function [entry]](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#exometer_function_[entry])
+3. [Built in Reporters](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Built_in_Reporters)
+    1. [exometer_report_tty](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#exometer_report_tty)
+4. [Instrumenting Erlang code](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Instrumenting_Erlang_code)
+    1. [Exometer Core Start](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Exometer_Core_Start)
+    2. [Creating metrics](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Creating_metrics)
+    3. [Deleting metrics](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Deleting_metrics)
+    4. [Setting metric values](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Setting_metric_values)
+    5. [Retrieving metric values](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Retrieving_metric_values)
+    6. [Setting up subscriptions](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Setting_up_subscriptions)
+    7. [Set metric options](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Set_metric_options)
+5. [Configuring Exometer Core](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Configuring_Exometer_Core)
+    1. [Configuring type - entry maps](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Configuring_type_-_entry_maps)
+    2. [Configuring statically defined entries](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Configuring_statically_defined_entries)
+    3. [Configuring static subscriptions](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Configuring_static_subscriptions)
+    4. [Configuring reporter plugins](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Configuring_reporter_plugins)
+6. [Creating custom exometer entries](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Creating_custom_exometer_entries)
+7. [Creating custom probes](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Creating_custom_probes)
+8. [Creating custom reporter plugins](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Creating_custom_reporter_plugins)
+9. [Dependency management](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Dependency_management)
 
 
 ### <a name="Concepts_and_Definitions">Concepts and Definitions</a> ###
@@ -328,9 +328,9 @@ application:start(exometer_core).
 Note that dependent applications need to be started first. On newer OTP versions
 (R61B or later), you can use `application:ensure_all_started(exometer)`.
 
-For testing, you can also use [`exometer:start/0`](https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer.md#start-0).
+For testing, you can also use [`exometer:start/0`](https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer.md#start-0).
 
-See [Configuring Exometer Core](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Configuring_Exometer_Core) for details on configuration data
+See [Configuring Exometer Core](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Configuring_Exometer_Core) for details on configuration data
 format.
 
 
@@ -347,7 +347,7 @@ exometer:new(Name, Type)
 The type of the metric, specified by `Type` will be mapped
 to an exometer entry through the table maintained by
 `exometer_admin` Please see the [Configuring type - entry
-maps](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Configuring_type_-_entry_maps) for details.
+maps](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Configuring_type_-_entry_maps) for details.
 
 The resolved entry to use will determine the data points available
 under the given metric.
@@ -413,7 +413,7 @@ determined by the backing entry / probe, will be returned.
 
 A subscription can either be statically configured, or dynamically
 setup from within the code using Exometer Core. For details on statically
-configured subscriptions, please see [Configuring static subscriptions](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Configuring_static_subscriptions).
+configured subscriptions, please see [Configuring static subscriptions](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Configuring_static_subscriptions).
 
 A dynamic subscription can be setup with the following call:
 
@@ -569,7 +569,7 @@ Below is an example, from `exometer/priv/app.config`:
 ```
 
 The `report` section configures static subscriptions and reporter
-plugins. See [Configuring reporter plugins](https://github.com/Feuerlabs/exometer_core/blob/master/doc/README.md#Configuring_reporter_plugins) for details on
+plugins. See [Configuring reporter plugins](https://github.com/OpenRiak/exometer_core/blob/master/doc/README.md#Configuring_reporter_plugins) for details on
 how to configure individual plugins.
 
 The `subscribers` sub-section contains all static subscriptions to be
@@ -685,8 +685,8 @@ As the names imply, the script given by `EXOMETER_CONFIG_CONFIG_PREPROCESS`
 `EXOMETER_CORE_CONFIG_POSTPROCESS` script (if any) will be run after all other
 processing is complete.
 
-[travis]: https://travis-ci.org/Feuerlabs/exometer_core
-[travis badge]: https://img.shields.io/travis/Feuerlabs/exometer_core/master.svg?style=flat-square
+[travis]: https://travis-ci.org/OpenRiak/exometer_core
+[travis badge]: https://img.shields.io/travis/OpenRiak/exometer_core/master.svg?style=flat-square
 [hex]: https://hex.pm/packages/exometer_core
 [hex version badge]: https://img.shields.io/hexpm/v/exometer_core.svg?style=flat-square
 [hex license badge]: https://img.shields.io/hexpm/l/exometer_core.svg?style=flat-square
@@ -698,25 +698,25 @@ processing is complete.
 
 
 <table width="100%" border="0" summary="list of modules">
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer.md" class="module">exometer</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_admin.md" class="module">exometer_admin</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_alias.md" class="module">exometer_alias</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_cache.md" class="module">exometer_cache</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_cpu.md" class="module">exometer_cpu</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_duration.md" class="module">exometer_duration</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_entry.md" class="module">exometer_entry</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_function.md" class="module">exometer_function</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_histogram.md" class="module">exometer_histogram</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_info.md" class="module">exometer_info</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_probe.md" class="module">exometer_probe</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_proc.md" class="module">exometer_proc</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_report.md" class="module">exometer_report</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_report_logger.md" class="module">exometer_report_logger</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_report_tty.md" class="module">exometer_report_tty</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_shallowtree.md" class="module">exometer_shallowtree</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_slide.md" class="module">exometer_slide</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_slot_slide.md" class="module">exometer_slot_slide</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_spiral.md" class="module">exometer_spiral</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_uniform.md" class="module">exometer_uniform</a></td></tr>
-<tr><td><a href="https://github.com/Feuerlabs/exometer_core/blob/master/doc/exometer_util.md" class="module">exometer_util</a></td></tr></table>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer.md" class="module">exometer</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_admin.md" class="module">exometer_admin</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_alias.md" class="module">exometer_alias</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_cache.md" class="module">exometer_cache</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_cpu.md" class="module">exometer_cpu</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_duration.md" class="module">exometer_duration</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_entry.md" class="module">exometer_entry</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_function.md" class="module">exometer_function</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_histogram.md" class="module">exometer_histogram</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_info.md" class="module">exometer_info</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_probe.md" class="module">exometer_probe</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_proc.md" class="module">exometer_proc</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_report.md" class="module">exometer_report</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_report_logger.md" class="module">exometer_report_logger</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_report_tty.md" class="module">exometer_report_tty</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_shallowtree.md" class="module">exometer_shallowtree</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_slide.md" class="module">exometer_slide</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_slot_slide.md" class="module">exometer_slot_slide</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_spiral.md" class="module">exometer_spiral</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_uniform.md" class="module">exometer_uniform</a></td></tr>
+<tr><td><a href="https://github.com/OpenRiak/exometer_core/blob/master/doc/exometer_util.md" class="module">exometer_util</a></td></tr></table>
 
