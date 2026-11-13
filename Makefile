@@ -1,6 +1,6 @@
 .PHONY: all clean clean-all compile test doc dialyzer xref ci
 
-REBAR3 ?= rebar3
+REBAR3 ?= ../riak/rebar3
 
 all: compile xref test
 
